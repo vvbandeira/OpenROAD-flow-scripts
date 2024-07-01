@@ -60,8 +60,7 @@ node {
             uploadMetadata(env.BRANCH_NAME, commitHash);
         }
         stage('Send Report') {
-            def COMMIT_AUTHOR_EMAIL = sh(script: "git --no-pager show -s --format='%ae'", returnStdout: true).trim();
-            sendEmail(env.BRANCH_NAME, COMMIT_AUTHOR_EMAIL);
+            sendEmail();
         }
     }
 
