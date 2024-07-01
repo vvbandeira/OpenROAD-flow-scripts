@@ -20,11 +20,8 @@ node {
     }
     def DOCKER_IMAGE = "openroad/flow-ubuntu22.04-dev:${DOCKER_IMAGE_TAG}";
 
-    docker.image("${DOCKER_IMAGE}").inside('--user=root --privileged -v /var/run/docker.sock:/var/run/docker.sock') {
-        stage('Build ORFS and Stash bins') {
-            sh "git config --system --add safe.directory '*'";
-            localBuild();
-        }
+    stage('Build ORFS and Stash bins') {
+        localBuild("${DOCKER_IMAGE}");
     }
 
     stage('Run Tests') {
