@@ -51,10 +51,10 @@ node {
     docker.image("${DOCKER_IMAGE}").inside('--user=root --privileged -v /var/run/docker.sock:/var/run/docker.sock') {
         sh "git config --system --add safe.directory '*'";
         stage('Report Summary') {
-            generateReportShortSummary();
+            generateReport('genReportSummary');
         }
         stage("Report HTML Table") {
-            generateReportHtmlTable();
+            generateReport('genReportTable');
         }
         stage('Upload Metadata') {
             uploadMetadata(env.BRANCH_NAME, commitHash);
