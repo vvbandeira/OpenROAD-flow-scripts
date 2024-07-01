@@ -10,13 +10,12 @@ node {
         checkout scm;
     }
 
-    def commitHash = "none";
+    def commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true);
+    commitHash = commitHash.replaceAll(/[^a-zA-Z0-9-]/, '');
     def DOCKER_IMAGE_TAG = "latest";
     stage('Build and Push Docker Image') {
-        if (isDependencyInstallerChanged(env.BRANCH_NAME)) {
-            commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true);
-            commitHash = commitHash.replaceAll(/[^a-zA-Z0-9-]/, '');
-            DOCKER_IMAGE_TAG = pushCIImage(env.BRANCH_NAME, commitHash);
+        if (isDependencyInstallerChanged()) {
+            DOCKER_IMAGE_TAG = pushCIImage(commitHash);
         }
     }
     def DOCKER_IMAGE = "openroad/flow-ubuntu22.04-dev:${DOCKER_IMAGE_TAG}";
@@ -51,7 +50,7 @@ node {
     docker.image("${DOCKER_IMAGE}").inside('--user=root --privileged -v /var/run/docker.sock:/var/run/docker.sock') {
         sh "git config --system --add safe.directory '*'";
         stage('Upload Metadata') {
-            uploadMetadata(env.BRANCH_NAME, commitHash);
+            uploadMetadata(commitHash);
         }
         stage('Generate Report Summary') {
             generateReport();
