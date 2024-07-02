@@ -7,7 +7,7 @@ node {
     def commitHash;
     stage('Checkout') {
         checkout scm;
-        commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true);
+        commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true).trim();
         commitHash = commitHash.replaceAll(/[^a-zA-Z0-9-]/, '');
     }
 
@@ -15,10 +15,11 @@ node {
 
     stage('Build and Push Docker Image') {
         if (env.BRANCH_NAME == 'master') {
-            DOCKER_TAG = sh(script: './etc/DockerTag.sh -master', returnStdout: true);
+            DOCKER_TAG = sh(script: './etc/DockerTag.sh -master', returnStdout: true).trim();
         } else {
-            DOCKER_TAG = sh(script: './etc/DockerTag.sh -dev', returnStdout: true);
+            DOCKER_TAG = sh(script: './etc/DockerTag.sh -dev', returnStdout: true).trim();
         }
+        echo "Docker tag is $DOCKER_TAG";
         if (!dockerImageExists(DOCKER_TAG)) {
             dockerPush('dev', DOCKER_TAG);
         }
