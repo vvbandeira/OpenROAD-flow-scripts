@@ -164,7 +164,7 @@ _installUbuntuPackages() {
             elif [[ $1 == 24.04 ]]; then
                 klayoutChecksum=b8909538985b15135b49e8d32a089d72
             else
-                echo "Could not find checksum for klayout"
+                echo "Unrecognized version of Ubuntu $1. Please install KLayout manually."
                 exit 1
             fi
             wget https://www.klayout.org/downloads/Ubuntu-${1%.*}/klayout_${klayoutVersion}-1_amd64.deb
