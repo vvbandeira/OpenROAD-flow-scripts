@@ -1268,6 +1268,7 @@
     "tunable": 1
   },
   "SWAP_ARITH_OPERATORS": {
+    "default": 0,
     "description": "Improve timing QoR by swapping ALU and MULT arithmetic operators.\n",
     "stages": [
       "All stages"
@@ -1378,6 +1379,7 @@
     ]
   },
   "SYNTH_OPT_HIER": {
+    "default": 0,
     "description": "Optimize constants across hierarchical boundaries.\n",
     "stages": [
       "synth"
@@ -1430,6 +1432,7 @@
     ]
   },
   "SYNTH_WRAPPED_OPERATORS": {
+    "default": 0,
     "description": "Synthesize multiple architectural options for each arithmetic operator in the design. These options are available for switching among in later stages of the flow.\n",
     "stages": [
       "All stages"
