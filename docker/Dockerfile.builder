@@ -29,7 +29,6 @@ ARG verificPath=""
 RUN <<EOF
 set -e
 echo "" > tools/yosys/abc/.gitcommit
-./tools/OpenROAD/etc/DependencyInstaller.sh -bazel
 if [ -n "${verificPath}" ]; then
     verificArgs="--with-verific ${verificPath}"
 else
