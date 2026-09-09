@@ -155,12 +155,22 @@ only declared inputs are present, needs three things:
   scanned.
 - both staged into every later step, because the flow reads them by
   globbing the results dir (`load.tcl` takes `memories/*.lef`,
-  `read_liberty.tcl` takes `*.lib`) rather than through a variable.
+  `read_liberty.tcl` takes `memories/*.lib`) rather than through a
+  variable.
 - `memories_inferred.json` staged into synthesis as well. Nothing reads
-  it there, but `make` checks the whole chain
-  (`yosys-dependencies` -> `memories.json` -> `memories_inferred.json`),
-  and with the tail of it absent it re-runs detection at the wrong point
-  in the flow.
+  it there, but `make` walks the prerequisites of `yosys-dependencies`
+  before running it, and each one depends on the next:
+
+  ```make
+  yosys-dependencies:                     $(RESULTS_DIR)/memories.json
+  $(RESULTS_DIR)/memories.json:           $(RESULTS_DIR)/memories_inferred.json ...
+  $(RESULTS_DIR)/memories_inferred.json:  $(VERILOG_FILES) ...
+  ```
+
+  With the far end of that chain absent, make rebuilds
+  `memories_inferred.json` -- re-running detection at a point in the
+  flow where the design is no longer the original RTL -- and then tries
+  to rewrite `memories.json`.
 
 bazel-orfs implements this.
 
