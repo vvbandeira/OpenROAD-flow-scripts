@@ -24,12 +24,12 @@ ENV PATH="/usr/local/bin/wrapped-cc:$PATH"
 
 COPY --link tools tools
 ARG numThreads=$(nproc)
-ARG openroadVersion=NotSet
 ARG verificPath=""
 
 RUN <<EOF
 set -e
 echo "" > tools/yosys/abc/.gitcommit
+./tools/OpenROAD/etc/DependencyInstaller.sh -bazel
 if [ -n "${verificPath}" ]; then
     verificArgs="--with-verific ${verificPath}"
 else
@@ -38,7 +38,6 @@ fi
 ./build_openroad.sh --no_init \
                     --local \
                     --threads ${numThreads} \
-                    --openroad-args -DOPENROAD_VERSION=${openroadVersion} \
                     ${verificArgs}
 if [ -n "${verificPath}" ]; then
     rm -rf "${verificPath}"

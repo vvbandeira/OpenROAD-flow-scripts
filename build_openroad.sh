@@ -23,8 +23,8 @@ INSTALL_PATH="$(pwd)/tools/install"
 YOSYS_USER_ARGS=""
 YOSYS_ARGS=""
 
-OPENROAD_APP_USER_ARGS=""
-OPENROAD_APP_ARGS=""
+OPENROAD_APP_USER_ARGS=()
+OPENROAD_APP_ARGS=()
 
 DOCKER_OS_NAME="ubuntu22.04"
 PROC=-1
@@ -77,11 +77,10 @@ Options:
                             to the Verific source folder.
 
     --openroad-args-overwrite
-                            Do not use default flags set by this script during
-                            OpenROAD app compilation.
+                            Do not use the default OpenROAD Build.sh arguments.
 
-    --openroad-args STRING  Additional compilation flags for OpenROAD app
-                            compilation.
+    --openroad-args STRING  Additional arguments for OpenROAD Build.sh.
+                            For example: '-no-gui -lto'.
 
     --install-path PATH     Path to install tools. Default is ${INSTALL_PATH}.
 
@@ -163,7 +162,15 @@ while (( "$#" )); do
                         OPENROAD_APP_OVERWRITE_ARGS=1
                         ;;
                 --openroad-args)
-                        OPENROAD_APP_USER_ARGS="$2"
+                        if ! parsed_args=$(printf '%s\n' "$2" | xargs printf '%s\n'); then
+                                echo "[ERROR] Invalid OpenROAD build arguments: $2" >&2
+                                exit 1
+                        fi
+                        while IFS= read -r arg; do
+                                if [ -n "$arg" ]; then
+                                        OPENROAD_APP_USER_ARGS+=("$arg")
+                                fi
+                        done <<< "$parsed_args"
                         shift
                         ;;
                 --install-path)
@@ -207,11 +214,10 @@ echo "[INFO FLW-0028] Compiling with ${PROC} threads."
 
 # Only add install prefix variables after parsing arguments.
 YOSYS_ARGS+=" -DCMAKE_INSTALL_PREFIX=\"${INSTALL_PATH}/yosys\""
-OPENROAD_APP_ARGS+=" -D CMAKE_INSTALL_PREFIX=${INSTALL_PATH}/OpenROAD"
-if [ -n "$CMAKE_INSTALL_RPATH" ]; then
-        OPENROAD_APP_ARGS+=" -D CMAKE_INSTALL_RPATH=${CMAKE_INSTALL_RPATH}"
-        OPENROAD_APP_ARGS+=" -D CMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE"
-fi
+OPENROAD_APP_ARGS=(
+        "-prefix=${INSTALL_PATH}/OpenROAD"
+        "-threads=${PROC}"
+)
 
 __args_setup() {
         if [ ! -z "${YOSYS_OVERWRITE_ARGS+x}" ]; then
@@ -222,10 +228,10 @@ __args_setup() {
         fi
 
         if [ ! -z "${OPENROAD_APP_OVERWRITE_ARGS+x}" ]; then
-                echo "[INFO FLW-0015] Overwriting OpenROAD app compilation flags."
-                OPENROAD_APP_ARGS="${OPENROAD_APP_USER_ARGS}"
+                echo "[INFO FLW-0015] Overwriting OpenROAD build arguments."
+                OPENROAD_APP_ARGS=("${OPENROAD_APP_USER_ARGS[@]}")
         else
-                OPENROAD_APP_ARGS+=" ${OPENROAD_APP_USER_ARGS}"
+                OPENROAD_APP_ARGS+=("${OPENROAD_APP_USER_ARGS[@]}")
         fi
 }
 
@@ -325,26 +331,7 @@ __local_build()
 
         if [ -z "${SKIP_OPENROAD+x}" ]; then
                 echo "[INFO FLW-0018] Compiling OpenROAD."
-                if [ -f "${DIR}/openroad_deps_prefixes.txt" ]; then
-                        DEPS_PREFIX_ARG="${DIR}/openroad_deps_prefixes.txt"
-                elif [ -f "${DIR}/tools/OpenROAD/etc/openroad_deps_prefixes.txt" ]; then
-                        DEPS_PREFIX_ARG="${DIR}/tools/OpenROAD/etc/openroad_deps_prefixes.txt"
-                elif [ -f /etc/openroad_deps_prefixes.txt ]; then
-                        DEPS_PREFIX_ARG="/etc/openroad_deps_prefixes.txt"
-                else
-                        DEPS_PREFIX_ARG=""
-                fi
-                if [[ -n "${DEPS_PREFIX_ARG}" ]]; then
-                        echo "[INFO FLW-0029] Found OpenROAD dependencies prefixes file: '${DEPS_PREFIX_ARG}'."
-                        DEPS_PREFIX_ARG="-deps-prefixes-file=${DEPS_PREFIX_ARG}"
-                fi
-                eval ${NICE} ./tools/OpenROAD/etc/Build.sh \
-                        -cmake-build \
-                        -dir="$DIR/tools/OpenROAD/build" \
-                        -threads=${PROC} \
-                        -cmake=\'${OPENROAD_APP_ARGS}\' \
-                        ${DEPS_PREFIX_ARG}
-                ${NICE} cmake --build tools/OpenROAD/build --target install -j "${PROC}"
+                ${NICE} ./tools/OpenROAD/etc/Build.sh "${OPENROAD_APP_ARGS[@]}"
         fi
 
         YOSYS_ABC_PATH=tools/yosys/abc
