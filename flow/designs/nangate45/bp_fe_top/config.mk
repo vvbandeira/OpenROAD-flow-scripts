@@ -18,7 +18,6 @@ export ADDITIONAL_LIBS = $(PLATFORM_DIR)/lib/fakeram45_512x64.lib \
 
 
 export CORE_UTILIZATION = 50
-export PLACE_DENSITY_LB_ADDON = 0.11
 
 export IO_CONSTRAINTS = $(DESIGN_HOME)/$(PLATFORM)/$(DESIGN_NAME)/io.tcl
 
