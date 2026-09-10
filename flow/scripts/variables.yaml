@@ -467,6 +467,7 @@ SYNTH_WRAPPED_OPERATORS:
     the flow.
   stages:
     - All stages
+  default: 0
 SYNTH_WRAPPED_ADDERS:
   description: >
     Specify the adder modules that can be used for synthesis, separated by commas.
@@ -484,6 +485,7 @@ SWAP_ARITH_OPERATORS:
     Improve timing QoR by swapping ALU and MULT arithmetic operators.
   stages:
     - All stages
+  default: 0
 FLOORPLAN_DEF:
   description: |
     Use the DEF file to initialize floorplan. Mutually exclusive with FOOTPRINT or DIE_AREA/CORE_AREA or CORE_UTILIZATION.
@@ -1074,6 +1076,7 @@ SYNTH_OPT_HIER:
     Optimize constants across hierarchical boundaries.
   stages:
     - synth
+  default: 0
 VERILOG_TOP_PARAMS:
   description: |
     Apply toplevel params (if exist). Passed in as a list of key value pairs
