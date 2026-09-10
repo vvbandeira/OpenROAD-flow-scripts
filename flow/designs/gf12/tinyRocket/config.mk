@@ -26,7 +26,8 @@ export ADDITIONAL_GDS = $(PLATFORM_DIR)/gds/gf12_1rf_lg6_w32_all.gds2 \
                         $(PLATFORM_DIR)/gds/gf12_1rf_lg6_w32_byte.gds2
 
 export CORE_UTILIZATION = 50
-export PLACE_DENSITY_LB_ADDON = 0.10
+
+export PLACE_DENSITY = 0.20
 
 export MACRO_WRAPPERS = $(DESIGN_HOME)/$(PLATFORM)/$(DESIGN_NICKNAME)/wrappers.tcl
 
