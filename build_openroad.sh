@@ -80,7 +80,7 @@ Options:
                             Do not use the default OpenROAD Build.sh arguments.
 
     --openroad-args STRING  Additional arguments for OpenROAD Build.sh.
-                            For example: '-no-gui -lto'.
+                            For example: '-no-gui'.
 
     --install-path PATH     Path to install tools. Default is ${INSTALL_PATH}.
 
@@ -214,9 +214,13 @@ echo "[INFO FLW-0028] Compiling with ${PROC} threads."
 
 # Only add install prefix variables after parsing arguments.
 YOSYS_ARGS+=" -DCMAKE_INSTALL_PREFIX=\"${INSTALL_PATH}/yosys\""
+# -lto selects Bazel --config=opt (-O3 and LTO). The default Bazel build is
+# -O2 without LTO, which produces a slower binary with different QoR than the
+# previous CMake RELEASE build.
 OPENROAD_APP_ARGS=(
         "-prefix=${INSTALL_PATH}/OpenROAD"
         "-threads=${PROC}"
+        "-lto"
 )
 
 __args_setup() {
