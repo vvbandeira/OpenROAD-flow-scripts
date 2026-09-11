@@ -80,7 +80,9 @@ Options:
                             Do not use the default OpenROAD Build.sh arguments.
 
     --openroad-args STRING  Additional arguments for OpenROAD Build.sh.
-                            For example: '-no-gui'.
+                            For example: '-no-gui'. Quotes group one argument
+                            that holds spaces. All other characters, a
+                            backslash included, are literal.
 
     --install-path PATH     Path to install tools. Default is ${INSTALL_PATH}.
 
@@ -101,6 +103,49 @@ Options valid only for Docker builds:
     By default, the tools will be built from the linked submodule hashes.
 
 EOF
+}
+
+# Split a shell-like string into words and add them to
+# OPENROAD_APP_USER_ARGS. A single or double quote groups a word. Every other
+# character, a backslash included, is literal, and there is no escape
+# character. A quoted word therefore cannot hold its own quote character.
+# Nothing is expanded, so text such as $(...) stays literal.
+__append_openroad_args()
+{
+        local text="$1"
+        local word="" quote="" char="" have_word=0 index
+
+        for (( index = 0; index < ${#text}; index++ )); do
+                char="${text:index:1}"
+                if [ -n "${quote}" ]; then
+                        if [ "${char}" = "${quote}" ]; then
+                                quote=""
+                        else
+                                word+="${char}"
+                        fi
+                elif [ "${char}" = "'" ] || [ "${char}" = '"' ]; then
+                        quote="${char}"
+                        have_word=1
+                elif [[ "${char}" =~ [[:space:]] ]]; then
+                        if [ "${have_word}" -eq 1 ]; then
+                                OPENROAD_APP_USER_ARGS+=("${word}")
+                                word=""
+                                have_word=0
+                        fi
+                else
+                        word+="${char}"
+                        have_word=1
+                fi
+        done
+
+        if [ -n "${quote}" ]; then
+                echo "[ERROR FLW-0006] Unbalanced ${quote} quote in OpenROAD build arguments: ${text}" >&2
+                exit 1
+        fi
+
+        if [ "${have_word}" -eq 1 ]; then
+                OPENROAD_APP_USER_ARGS+=("${word}")
+        fi
 }
 
 # Parse arguments
@@ -162,15 +207,7 @@ while (( "$#" )); do
                         OPENROAD_APP_OVERWRITE_ARGS=1
                         ;;
                 --openroad-args)
-                        if ! parsed_args=$(printf '%s\n' "$2" | xargs printf '%s\n'); then
-                                echo "[ERROR] Invalid OpenROAD build arguments: $2" >&2
-                                exit 1
-                        fi
-                        while IFS= read -r arg; do
-                                if [ -n "$arg" ]; then
-                                        OPENROAD_APP_USER_ARGS+=("$arg")
-                                fi
-                        done <<< "$parsed_args"
+                        __append_openroad_args "$2"
                         shift
                         ;;
                 --install-path)
